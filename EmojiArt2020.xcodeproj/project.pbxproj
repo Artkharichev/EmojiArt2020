@@ -62,9 +62,9 @@
 		673E767024A3897F00F4D6D8 /* EmojiArt2020 */ = {
 			isa = PBXGroup;
 			children = (
+				673E768724A39D2A00F4D6D8 /* EmojiArt.swift */,
 				673E768524A389B000F4D6D8 /* EmojiArtDocument.swift */,
 				673E767524A3897F00F4D6D8 /* EmojiArtDocumentView.swift */,
-				673E768724A39D2A00F4D6D8 /* EmojiArt.swift */,
 				673E767124A3897F00F4D6D8 /* AppDelegate.swift */,
 				673E767324A3897F00F4D6D8 /* SceneDelegate.swift */,
 				673E768924A3A11F00F4D6D8 /* EmojiArtExtensions.swift */,
