@@ -209,3 +209,13 @@ extension UIImage {
         return url
     }
 }
+
+extension Set where Element: Identifiable {
+    mutating func toggleMatching(_ emoji: Element) {
+        if contains(matching: emoji) {
+            remove(emoji)
+        } else {
+            insert(emoji)
+        }
+    }
+}

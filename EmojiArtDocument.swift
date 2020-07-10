@@ -11,7 +11,7 @@ import SwiftUI
 
 class EmojiArtDocument: ObservableObject {
     
-    static var palette: String = "🙀🏐❤️⭐️🌎🌧🌗🦜🐏💋"
+    static var palette: String = "🙀🏐❤️⭐️🌎🌧🌗🦜🐏🍎💋"
     
     @Published private var emojiArt : EmojiArt  {
         didSet {
@@ -31,6 +31,12 @@ class EmojiArtDocument: ObservableObject {
     var emojis: [EmojiArt.Emoji] { emojiArt.emojis }
     
     //MARK: - Intent(s)
+    
+    func removeEmoji(_ emoji: EmojiArt.Emoji) {
+        if let index = emojiArt.emojis.firstIndex(matching: emoji) {
+            emojiArt.emojis.remove(at: index)
+        }
+    }
     
     func addEmoji(_ emoji: String, at location: CGPoint, size: CGFloat) {
         emojiArt.addEmoji(emoji, x: Int(location.x), y: Int(location.y), size: Int(size))
