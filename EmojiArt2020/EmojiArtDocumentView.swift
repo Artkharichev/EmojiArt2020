@@ -12,18 +12,23 @@ import SwiftUI
 struct ContentView: View {
     @ObservedObject var document: EmojiArtDocument
     
+    @State private var chosenPalette: String = ""
+    
     var body: some View {
         VStack {
-            ScrollView(.horizontal) {
-                HStack {
-                    ForEach(EmojiArtDocument.palette.map { String($0) },id: \.self) { emoji in
-                        Text(emoji)
-                            .font(Font.system(size: self.defaulfEmojiSize))
-                            .onDrag { NSItemProvider(object: emoji as NSString) }
+            HStack {
+                PaletteChooser(document: document, chosenPalette: $chosenPalette)
+                ScrollView(.horizontal) {
+                    HStack {
+                        ForEach(chosenPalette.map { String($0) },id: \.self) { emoji in
+                            Text(emoji)
+                                .font(Font.system(size: self.defaulfEmojiSize))
+                                .onDrag { NSItemProvider(object: emoji as NSString) }
+                        }
                     }
                 }
+                .onAppear { self.chosenPalette = self.document.defaultPalette }
             }
-            .padding(.horizontal)
             GeometryReader { geometry in
                 ZStack {
                     Color.white.overlay(
@@ -35,20 +40,27 @@ struct ContentView: View {
                             self.doubleTapToZoom(in: geometry.size)
                                 .exclusively(before: self.singleTapToSelect(for: nil))
                     )
-                    ForEach(self.document.emojis) { emoji in
-                        Text(emoji.text)
-                            .font(animatableWithSize: emoji.fontSize * self.zoomScale(for: emoji))
-                            .position(self.position(for: emoji, in: geometry.size))
-                            .gesture(self.singleTapToSelect(for: emoji))
-                            .gesture(self.longPress(for: emoji))
-                            .gesture(self.dragSelectedEmoji(for: emoji))
-                            .shadow(color: self.isEmojiSelected(emoji) ? .black : .clear , radius: 10 )
+                    if self.isLoading {
+                        Image(systemName: "hourglass").imageScale(.large).spinning()
+                    } else {
+                        ForEach(self.document.emojis) { emoji in
+                            Text(emoji.text)
+                                .font(animatableWithSize: emoji.fontSize * self.zoomScale(for: emoji))
+                                .position(self.position(for: emoji, in: geometry.size))
+                                .gesture(self.singleTapToSelect(for: emoji))
+                                .gesture(self.longPress(for: emoji))
+                                .gesture(self.dragSelectedEmoji(for: emoji))
+                                .shadow(color: self.isEmojiSelected(emoji) ? .black : .clear , radius: 10 )
+                        }
                     }
                 }
                 .clipped()
                 .gesture(self.panGesture())
                 .gesture(self.zoomGesture())
                 .edgesIgnoringSafeArea([.horizontal,.bottom])
+                .onReceive(self.document.$backgroundImage) { image in
+                    self.zoomToFit(image, in: geometry.size)
+                }
                 .onDrop(of: ["public.image","public.text"], isTargeted: nil) { providers, location in
                     // SwiftUI bug (as of 13.4)? the location is supposed to be in our coordinate system
                     // however, the y coordinate appears to be in the global coordinate system
@@ -61,6 +73,10 @@ struct ContentView: View {
                 }
             }
         }
+    }
+    
+    var isLoading: Bool {
+        document.backgroundURL != nil && document.backgroundImage == nil
     }
     
     @State private var selectedEmojis = Set<EmojiArt.Emoji>()
@@ -86,9 +102,9 @@ struct ContentView: View {
     
     private func longPress(for emoji: EmojiArt.Emoji) -> some Gesture {
         LongPressGesture(minimumDuration: 2)
-                    .onEnded { _ in
-                        self.document.removeEmoji(emoji)
-                }
+            .onEnded { _ in
+                self.document.removeEmoji(emoji)
+        }
     }
     
     
@@ -187,7 +203,7 @@ struct ContentView: View {
     
     private func drop(providers: [NSItemProvider], at location: CGPoint) -> Bool {
         var found = providers.loadFirstObject(ofType: URL.self) { url in
-            self.document.setBackgroundURL(url)
+            self.document.backgroundURL = url
         }
         if !found {
             found = providers.loadObjects(ofType: String.self) { string in
