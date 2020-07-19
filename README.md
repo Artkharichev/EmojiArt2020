@@ -4,6 +4,8 @@ EmojiArt - App for downloading images from internet and placing emoji on it.
 Developed using:
 - MVVM Model
 - SwiftUI, Combine
+- Data, URL
+- FileManager
 - JSON
 - URLSession
 - Gesture
